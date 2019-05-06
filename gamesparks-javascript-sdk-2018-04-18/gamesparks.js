@@ -1,3 +1,14 @@
+// if node.js
+if (typeof module === 'object' && module.exports) {
+	var navigator = {
+		userAgent: "Chrome/73.0.3683.103",
+		vendor: "Google Inc.",
+		platform: "Mac"
+	};
+	var window = {};
+	window.setInterval = setInterval;
+}
+
 /* global define, module, require */
 (function (root, factory) {
 	if (typeof define === 'function' && define.amd) {
