@@ -1,10 +1,18 @@
 var GameSparks = require("../gamesparks-javascript-sdk-2018-04-18/gamesparks");
 var config = new require("./config.json");
 
+exports.GameClientStates = {
+    IDLE: "Idle",
+    MATCHMAKING: "Matchmaking",
+    CHALLENGE: "Challenge"
+}
+
 exports.GameClient = function () {
     var gamesparks = new GameSparks();
 
+    this.state = exports.GameClientStates.IDLE;
     this.playerId = undefined;
+    this.challenge = undefined;
 
     this.connected = () => (gamesparks.connected === true);
 
@@ -28,8 +36,19 @@ exports.GameClient = function () {
     }
 
     function onMessage(message) {
-        console.log("GAME onMessage: " + JSON.stringify(message));
+        switch (message["@class"]) {
+            case ".MatchNotFoundMessage":
+                this.state = exports.GameClientStates.IDLE;
+                break;
+            case ".ChallengeStartedMessage":
+                this.state = exports.GameClientStates.CHALLENGE;
+                this.challenge = message.challenge;
+                break;
+            default:
+                console.log("GAME onMessage: " + JSON.stringify(message));
+        }
     }
+    onMessage = onMessage.bind(this);
 
     this.authWithCustomId = function (customId) {
         return new Promise(resolve => {
@@ -59,5 +78,25 @@ exports.GameClient = function () {
     this.connectAsAnonymous = function (customId) {
         return this.connect()
             .then(() => this.authWithCustomId(customId));
+    }
+
+    this.findStandardMatch = function () {
+        var eventData = { eventKey: "FindStandardMatch" }
+        return new Promise(resolve => {
+            sendRequest("LogEventRequest", eventData)
+                .then(response => {
+                    if (!response.error) {
+                        this.state = exports.GameClientStates.MATCHMAKING;
+                        resolve();
+                    } else {
+                        console.error(response.error);
+                        reject(new Error(response));
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    reject(new Error(error));
+                });
+        });
     }
 }
