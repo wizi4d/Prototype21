@@ -50,4 +50,9 @@ exports.GameClient = function () {
             gamesparks.sendWithData(requestType, requestData, (response) => resolve(response));
         });
     }
+
+    this.connectAsAnonymous = function (customId) {
+        return this.connect()
+            .then(() => this.authWithCustomId(customId));
+    }
 }

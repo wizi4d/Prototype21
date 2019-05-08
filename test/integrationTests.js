@@ -19,13 +19,11 @@ describe("Integration test", function () {
         var gameClient2 = new GameClientModule.GameClient();
         expect(gameClient2.playerId).is.undefined;
 
-        await gameClient1.connect();
-        await gameClient1.authWithCustomId("111");
+        await gameClient1.connectAsAnonymous("111");
 
         expect(gameClient1.playerId).is.equals("5b5f5614031f5bc44d59b6a9");
 
-        await gameClient2.connect();
-        await gameClient2.authWithCustomId("222");
+        await gameClient2.connectAsAnonymous("222");
 
         expect(gameClient2.playerId).is.equals("5b5f6ddb031f5bc44d59b741");
     });
