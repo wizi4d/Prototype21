@@ -4,6 +4,8 @@ var config = new require("./config.json");
 exports.GameClient = function () {
     var gamesparks = new GameSparks();
 
+    this.playerId = undefined;
+
     this.connected = () => (gamesparks.connected === true);
 
     this.connect = function () {
@@ -22,5 +24,30 @@ exports.GameClient = function () {
 
     function onMessage(message) {
         console.log("GAME onMessage: " + JSON.stringify(message));
+    }
+
+    this.authWithCustomId = function (customId) {
+        return new Promise(resolve => {
+            var requestData = {
+                "deviceId": customId
+                , "deviceOS": "NodeJS"
+            }
+            sendRequest("DeviceAuthenticationRequest", requestData)
+                .then(response => {
+                    if (response.userId) {
+                        this.playerId = response.userId;
+                        resolve();
+                    } else {
+                        reject(new Error(response));
+                    }
+                })
+                .catch(error => { console.error(error); });
+        });
+    }
+
+    function sendRequest(requestType, requestData) {
+        return new Promise(function (resolve) {
+            gamesparks.sendWithData(requestType, requestData, (response) => resolve(response));
+        });
     }
 }
