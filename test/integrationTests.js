@@ -1,12 +1,17 @@
 var expect = require("chai").expect;
 var GameClientModule = require("../src/gameClient");
 
+var sleep = function (ms) {
+    return new Promise(resolve => setTimeout(() => resolve(), ms));
+}
+
 describe("Integration test", function () {
     this.timeout(0);
 
     var playerCustomIds = {
         id1: "111",
-        id2: "222"
+        id2: "222",
+        id3: "333"
     }
 
     var allClients = [];
@@ -46,5 +51,34 @@ describe("Integration test", function () {
         await gameClient2.connectAsAnonymous(playerCustomIds.id2);
 
         expect(gameClient2.playerId).is.equals("5b5f6ddb031f5bc44d59b741");
+    });
+
+    it("should find match", async function () {
+        var gameClient1 = newGameClient();
+        var gameClient2 = newGameClient();
+        var gameClient3 = newGameClient();
+
+        await gameClient1.connectAsAnonymous(playerCustomIds.id1);
+        await gameClient2.connectAsAnonymous(playerCustomIds.id2);
+        await gameClient3.connectAsAnonymous(playerCustomIds.id3);
+
+        await gameClient1.findStandardMatch();
+        expect(gameClient1.state).is.equals(GameClientModule.GameClientStates.MATCHMAKING);
+        await gameClient2.findStandardMatch();
+        expect(gameClient2.state).is.equals(GameClientModule.GameClientStates.MATCHMAKING);
+        await gameClient3.findStandardMatch();
+        expect(gameClient3.state).is.equals(GameClientModule.GameClientStates.MATCHMAKING);
+
+        await sleep(3000);
+
+        expect(gameClient1.state).is.equals(GameClientModule.GameClientStates.CHALLENGE);
+        expect(gameClient1.challenge, "challenge").is.not.undefined;
+        expect(gameClient1.challenge.challengeId).is.not.undefined;
+
+        expect(gameClient2.state).is.equals(GameClientModule.GameClientStates.CHALLENGE);
+        expect(gameClient2.challenge.challengeId).is.equals(gameClient1.challenge.challengeId);
+
+        expect(gameClient3.state).is.equals(GameClientModule.GameClientStates.CHALLENGE);
+        expect(gameClient3.challenge.challengeId).is.equals(gameClient1.challenge.challengeId);
     });
 })
