@@ -22,6 +22,11 @@ exports.GameClient = function () {
         });
     }
 
+    this.disconnect = function () {
+        clearInterval(gamesparks.keepAliveInterval);
+        gamesparks.disconnect();
+    }
+
     function onMessage(message) {
         console.log("GAME onMessage: " + JSON.stringify(message));
     }
