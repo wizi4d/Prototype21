@@ -1,0 +1,8 @@
+{
+    "dependencies": {
+        "chai": "*",
+        "mocha": "*",
+        "crypto-js": "*",
+        "ws": "*"
+    }
+}
